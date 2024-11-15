@@ -67,10 +67,16 @@ class PluginManager:
         
         name_match = re.search(r'\* @name (.+)', content)
         version_match = re.search(r'\* @version (.+)', content)
-        update_url_match = re.search(r'\* @updateUrl (.+)', content)
+        update_url_match = re.search(r'\* @updateUrl (.+)', content) or re.search(r'\* @source (.+)', content)
+
+        if not version_match or not name_match or not update_url_match:
+            if not name_match:
+                raise ValueError(f"Falta la metadata (name) requerida en {file_path}")
+            elif not version_match:
+                raise ValueError(f"Falta metadata (version) requerida en {file_path}")
+            else:
+                raise ValueError(f"Falta metadata (no se pudo encontrar URL de descarga) requerida en {file_path}")
         
-        if not name_match or not version_match or not update_url_match:
-            raise ValueError(f"Falta metadata requerida en {file_path}")
         
         name = name_match.group(1)
         version = version_match.group(1)
@@ -86,21 +92,29 @@ class PluginManager:
         
         for plugin_file in self.plugin_files:
             plugin_path = os.path.join(self.plugins_folder, plugin_file)
+            
             try:
                 name, local_version, update_url = self.get_plugin_info(plugin_path)
+
+                print(name, local_version, update_url)
                 
                 response = requests.get(update_url)
                 response.raise_for_status()
                 
-                remote_version = re.search(r'\* @version (.+)', response.text).group(1)
-                
-                if self.is_newer_version(remote_version, local_version):
-                    self.progress_output.insert(tk.END, f"{plugin_file} - Actualización disponible\n", 'naranja')
-                    self.add_update_checkbox(plugin_file, name, remote_version, update_url)
-                    self.plugin_list.insert(tk.END, f"{plugin_file} : Actualización disponible\n")
-                else:
-                    self.progress_output.insert(tk.END, f"{plugin_file} - Actualizado\n", 'verde')
-                self.plugin_list.insert(tk.END, f"{plugin_file} : Actualizado\n")
+                try:
+                    remote_version = re.search(r'\* @version (.+)', response.text).group(1)
+                    if self.is_newer_version(remote_version, local_version):
+                        self.progress_output.insert(tk.END, f"{plugin_file} - Actualización disponible\n", 'naranja')
+                        self.add_update_checkbox(plugin_file, name, remote_version, update_url)
+                        self.plugin_list.insert(tk.END, f"{plugin_file} : Actualización disponible\n")
+                    else:
+                        self.progress_output.insert(tk.END, f"{plugin_file} - Actualizado\n", 'verde')
+                    self.plugin_list.insert(tk.END, f"{plugin_file} : Actualizado\n")
+                    
+                except AttributeError:
+                    self.progress_output.insert(tk.END, f"{plugin_file} - Error: Plugin no contiene URL de actualización\n", 'rojo')
+                    self.plugin_list.insert(tk.END, f"{plugin_file} : Error\n")
+
             except (requests.RequestException, ValueError) as e:
                 self.progress_output.insert(tk.END, f"{plugin_file} - Error: {e}\n", 'rojo')
                 self.plugin_list.insert(tk.END, f"{plugin_file} : Error\n")
