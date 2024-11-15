@@ -140,6 +140,7 @@ class PluginManager:
                     messagebox.showinfo("Actualización", f"Plugin '{plugin_file}' actualizado correctamente")
                 except requests.RequestException as e:
                     messagebox.showerror("Error", f"Error al actualizar el plugin '{plugin_file}': {e}")
+            self.root.quit()
     
     def is_newer_version(self, remote_version, local_version):
         return tuple(map(int, remote_version.split('.'))) > tuple(map(int, local_version.split('.')))
