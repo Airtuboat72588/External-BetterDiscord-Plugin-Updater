@@ -9,6 +9,7 @@ class PluginManager:
     def __init__(self, root):
         self.root = root
         self.root.title("Actualizador de Plugins")
+        self.root.resizable(False, False)
         
         self.config_file = "config.json"
         self.plugins_folder = self.load_config()
@@ -43,9 +44,16 @@ class PluginManager:
         self.progress_output = scrolledtext.ScrolledText(root, width=50, height=10)
         self.progress_output.grid(row=5, column=0, padx=10, pady=10)
 
-        self.errores = 0
-        self.actualizados = 0
         self.disponibles = 0
+        self.actualizados = 0
+        self.errores = 0
+
+        self.disponibles_label = tk.Label(root, text=f"Plugins con actualización disponible: {self.disponibles}")
+        self.disponibles_label.grid(row=6, column=0, padx=10, pady=10)
+        self.actualizados_label = tk.Label(root, text=f"Plugins actualizados: {self.actualizados}")
+        self.actualizados_label.grid(row=7, column=0, padx=10, pady=10)
+        self.errores_label = tk.Label(root, text=f"Errores: {self.errores}")
+        self.errores_label.grid(row=8, column=0, padx=10, pady=10)
     
     def load_config(self):
         if os.path.exists(self.config_file):
@@ -107,6 +115,7 @@ class PluginManager:
                 
                 try:
                     remote_version = re.search(r'\* @version (\d+\.\d+\.\d+)', response.text).group(1)
+                    print("Version remota:", remote_version)
                     if self.is_newer_version(remote_version, local_version):
                         self.progress_output.insert(tk.END, f"{plugin_file} - Actualización disponible\n", 'naranja')
                         self.add_update_checkbox(plugin_file, name, remote_version, update_url)
@@ -115,10 +124,12 @@ class PluginManager:
                     else:
                         self.progress_output.insert(tk.END, f"{plugin_file} - Actualizado\n", 'verde')
                         self.plugin_list.insert(tk.END, f"{plugin_file} : Actualizado\n")
+                        self.actualizados += 1
                     
                 except AttributeError:
                     self.progress_output.insert(tk.END, f"{plugin_file} - Error: Plugin no contiene URL de actualización\n", 'rojo')
                     self.plugin_list.insert(tk.END, f"{plugin_file} : Error\n")
+                    self.errores += 1
 
             except (requests.RequestException, ValueError) as e:
                 self.progress_output.insert(tk.END, f"{plugin_file} - Error: {e}\n", 'rojo')
@@ -127,6 +138,10 @@ class PluginManager:
         self.progress_output.tag_config('verde', foreground='green')
         self.progress_output.tag_config('naranja', foreground='orange')
         self.progress_output.tag_config('rojo', foreground='red')
+
+        self.disponibles_label.config(text=f"Plugins con actualización disponible: {self.disponibles}")
+        self.actualizados_label.config(text=f"Plugins actualizados: {self.actualizados}")
+        self.errores_label.config(text=f"Errores: {self.errores}")
     
     def add_update_checkbox(self, plugin_file, name, remote_version, update_url):
         var = tk.BooleanVar()
