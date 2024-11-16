@@ -102,7 +102,7 @@ class PluginManager:
                 response.raise_for_status()
                 
                 try:
-                    remote_version = re.search(r'\* @version (.+)', response.text).group(1)
+                    remote_version = re.search(r'\* @version (\d+\.\d+\.\d+)', response.text).group(1)
                     if self.is_newer_version(remote_version, local_version):
                         self.progress_output.insert(tk.END, f"{plugin_file} - Actualización disponible\n", 'naranja')
                         self.add_update_checkbox(plugin_file, name, remote_version, update_url)
