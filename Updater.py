@@ -114,7 +114,7 @@ class PluginManager:
                         self.disponibles += 1
                     else:
                         self.progress_output.insert(tk.END, f"{plugin_file} - Actualizado\n", 'verde')
-                    self.plugin_list.insert(tk.END, f"{plugin_file} : Actualizado\n")
+                        self.plugin_list.insert(tk.END, f"{plugin_file} : Actualizado\n")
                     
                 except AttributeError:
                     self.progress_output.insert(tk.END, f"{plugin_file} - Error: Plugin no contiene URL de actualización\n", 'rojo')
