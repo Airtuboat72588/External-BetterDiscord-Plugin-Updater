@@ -42,6 +42,10 @@ class PluginManager:
         
         self.progress_output = scrolledtext.ScrolledText(root, width=50, height=10)
         self.progress_output.grid(row=5, column=0, padx=10, pady=10)
+
+        self.errores = 0
+        self.actualizados = 0
+        self.disponibles = 0
     
     def load_config(self):
         if os.path.exists(self.config_file):
@@ -107,6 +111,7 @@ class PluginManager:
                         self.progress_output.insert(tk.END, f"{plugin_file} - Actualización disponible\n", 'naranja')
                         self.add_update_checkbox(plugin_file, name, remote_version, update_url)
                         self.plugin_list.insert(tk.END, f"{plugin_file} : Actualización disponible\n")
+                        self.disponibles += 1
                     else:
                         self.progress_output.insert(tk.END, f"{plugin_file} - Actualizado\n", 'verde')
                     self.plugin_list.insert(tk.END, f"{plugin_file} : Actualizado\n")
